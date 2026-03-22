@@ -23,3 +23,14 @@ notebooks/
 
 src/
 - pipeline scripts (ingestion, ETL, features)
+## Data Ingestion
+
+The dataset was obtained from the ASHRAE Great Energy Predictor III competition on Kaggle. A batch ingestion approach was used, where CSV files were downloaded locally and then uploaded to Azure Blob Storage.
+
+A storage account was created in Azure, and a container named `raw` was used to store the original data. The following files were uploaded:
+
+- train.csv  
+- weather_train.csv  
+- building_metadata.csv  
+
+These files represent the raw data layer and are stored without modification for further processing.
