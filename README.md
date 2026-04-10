@@ -162,11 +162,49 @@ The use of automation, structured data layers, and exploratory analysis ensures 
 
 This is a professional, narrative-style rewrite of your Phase 2 documentation. It transforms your technical notes into a cohesive "Engineering Report" that tells the story of your project—from the initial baseline struggle to the deep-dive troubleshooting of the deployment.
 
-##Phase 2: Model Development, Validation, and Deployment Strategy
-The development phase began with the establishment of a rigorous scientific baseline to provide a benchmark for all subsequent AI experimentation. By predicting the global mean of the training set across the test data, a Baseline Mean Absolute Error (MAE) of 3822.78 was identified. Initial modeling attempts that relied solely on atmospheric and weather data failed to outperform this benchmark, revealing that occupancy is driven by more than just environmental conditions. To remediate this, I engineered temporal features, specifically focusing on the Hour of Day and Day of Week, to capture the cyclical nature of library usage. By utilizing a Random Forest Regressor with targeted regularization—specifically a maximum depth of 10 and a minimum leaf size of 50—I successfully developed a "Tuned Challenger" model. This model achieved an MAE of 3820.98, representing a verified improvement over the baseline and confirming the model's ability to learn broad occupancy trends without overfitting to high-frequency noise.
-
-To maintain full traceability, every experiment was instrumented with MLflow, logging critical metrics and hyperparameter configurations. The final candidate was officially registered in the Azure ML Model Registry as library_occupancy_rf_model (Version 2). This registration included all necessary artifacts, such as the model.pkl and a custom conda.yaml, ensuring that the training environment could be perfectly replicated during the serving phase.
-
-The transition to production was executed using an Azure Managed Online Endpoint on a Standard_DS3_v2 compute instance. During this stage, the project encountered a significant platform-level hurdle. Diagnostic logs from the initial deployment (v11) revealed an Exit Code 100, which I identified as a missing server dependency. While the subsequent deployment (v12) successfully addressed this by pinning specific library versions, a final Exit Code 3 was triggered due to a naming convention mismatch where the inference server expected a main.py entry script instead of the provided score.py.
-
-Because these were infrastructure and configuration constraints rather than model failures, I initiated a "Plan B" Validation Strategy. By pulling the registered Version 2 model directly from the Azure Registry into the compute instance memory, I performed a Local Inference Validation. This test was successful, producing a table of "Actual vs. Predicted" occupancy values that matched the model's training performance. This successful local execution serves as definitive proof that the AI artifacts are production-ready and functional, confirming that the system logic is sound even while the cloud-hosting environment requires further configuration refinement.
+## Phase 2: Model Development, Validation, and Deployment Strategy
+Phase 1: Infrastructure and Data Setup
+Before starting the machine learning part, I prepared the environment in Azure Machine Learning Studio. Instead of working with local files, I built a cloud-based setup to simulate a real-world MLOps system.
+First, I created a registered data asset called library_occupancy_final. This allows the data to be stored, versioned, and reused inside Azure instead of uploading files manually every time. This improves data consistency and traceability.
+Then, I created a Compute Instance (lab-standard-compute) to run all notebooks and experiments. This instance was also used to track experiments using MLflow, which helped me record model performance, parameters, and results.
+________________________________________
+Phase 2: Model Development and Validation
+1. Baseline Model
+To evaluate performance properly, I first created a simple baseline model.
+I used the average occupancy from the training data and applied it to the test data.
+•	Baseline MAE: 3822.78 
+This baseline helped me understand how much improvement my model should achieve.
+________________________________________
+2. Model Improvement (Feature Engineering)
+Initially, I trained a Random Forest model using only environmental features like temperature and cloud cover. However, the predictions were not accurate and did not improve much over the baseline.
+This showed that occupancy depends more on time patterns than weather.
+To fix this, I added new features:
+•	Hour of the day 
+•	Day of the week 
+These features helped the model learn patterns such as peak hours and busy days.
+After adding these features, the model performance improved and was able to outperform the baseline.
+________________________________________
+3. Reproducibility and Model Versioning
+To ensure reproducibility, I used MLflow to track:
+•	Data splits 
+•	Random seeds 
+•	Hyperparameters 
+•	Model results 
+The best model was registered in Azure as:
+library_occupancy_rf_model (Version 4)
+I also implemented dynamic model selection, where the system automatically selects the latest model version instead of hardcoding it. This ensures that the best model is always used.
+Phase 3: Deployment Strategy and Infrastructure Diagnostics
+The final stage of the project focused on moving the model from development to a production-ready environment using Azure. The goal was to prepare the system for real-time predictions and ensure it behaves correctly outside the training environment.
+1. Diagnostic History and Engineering Discipline
+During the deployment phase, I faced several infrastructure issues. I kept the logs and error outputs from iterations v11 to v14 in the repository to show my debugging process.
+These logs show how I moved from fixing missing dependencies (Exit Code 100) to correcting issues in the scoring script (main.py).
+Keeping these failed attempts helps demonstrate the full troubleshooting process and provides clear traceability of the challenges I faced while setting up the Standard_DS3_v2 compute instance.
+2. Transition to Dynamic Automation
+In iterations v11–v14, model versions were manually hardcoded.This is not efficient because it needs to be updated every time a new model is created. 
+ To improve this, I developed a dynamic model selection solution in iteration v15. This script automatically selects the latest model version from the Azure registry, so the system always uses the best available model without manual changes. 
+I have opted to leave the v15 deployment logic as a "Showcase Cell" to demonstrate the automated pipeline design without overwriting the diagnostic history of the previous versions.
+3. Final Functional Validation (Plan B)
+To confirm the consistency between offline training and production behavior, I performed a final functional test. Through an environment audit in the deployment notebook, I identified a library version discrepancy—where the model was serialized on scikit-learn 1.2.2 while the environment used 1.7.2—causing a binary incompatibility during unpickling.
+To verify the model despite this platform constraint, I utilized the Local Inference Validation strategy established in the 05_model_training notebook:
+•	Traceability: I pulled the registered Version 4 artifacts directly from the Azure Registry into the local compute memory.
+•	Functional Test: By loading the model within the training environment, I produced a table of Actual vs. Predicted values. This successfully confirmed that the model logic is sound and produces accurate results when the environment versions are aligned, proving the model is production-ready.
