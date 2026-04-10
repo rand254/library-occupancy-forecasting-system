@@ -5,7 +5,7 @@ import os
 
 def init():
     global model
-    # This path is where Azure puts your model files
+    # The path Azure uses to store the model
     model_path = os.path.join(os.getenv("AZUREML_MODEL_DIR"), "model/model.pkl")
     model = joblib.load(model_path)
 
