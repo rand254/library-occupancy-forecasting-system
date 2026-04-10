@@ -155,14 +155,14 @@ A correlation matrix was created to analyze relationships between energy consump
 
 ---
 
-## Conclusion
+## Conclusion For Phase 1
 This project demonstrates the implementation of a cloud-based data pipeline using Azure Databricks and Blob Storage. The pipeline successfully processes raw data into a structured dataset suitable for machine learning.
 
 The use of automation, structured data layers, and exploratory analysis ensures that the system is scalable, reproducible, and ready for the next phase of model development.
 
 This is a professional, narrative-style rewrite of your Phase 2 documentation. It transforms your technical notes into a cohesive "Engineering Report" that tells the story of your project—from the initial baseline struggle to the deep-dive troubleshooting of the deployment.
 
-Phase 2: Model Development, Validation, and Deployment Strategy
+##Phase 2: Model Development, Validation, and Deployment Strategy
 The development phase began with the establishment of a rigorous scientific baseline to provide a benchmark for all subsequent AI experimentation. By predicting the global mean of the training set across the test data, a Baseline Mean Absolute Error (MAE) of 3822.78 was identified. Initial modeling attempts that relied solely on atmospheric and weather data failed to outperform this benchmark, revealing that occupancy is driven by more than just environmental conditions. To remediate this, I engineered temporal features, specifically focusing on the Hour of Day and Day of Week, to capture the cyclical nature of library usage. By utilizing a Random Forest Regressor with targeted regularization—specifically a maximum depth of 10 and a minimum leaf size of 50—I successfully developed a "Tuned Challenger" model. This model achieved an MAE of 3820.98, representing a verified improvement over the baseline and confirming the model's ability to learn broad occupancy trends without overfitting to high-frequency noise.
 
 To maintain full traceability, every experiment was instrumented with MLflow, logging critical metrics and hyperparameter configurations. The final candidate was officially registered in the Azure ML Model Registry as library_occupancy_rf_model (Version 2). This registration included all necessary artifacts, such as the model.pkl and a custom conda.yaml, ensuring that the training environment could be perfectly replicated during the serving phase.
