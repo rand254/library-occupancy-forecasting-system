@@ -1,1 +1,14 @@
-
+name: library-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip:
+    - numpy==1.23.5
+    - scikit-learn==1.7.2
+    - pandas==1.5.3
+    - mlflow
+    - azureml-mlflow
+    - cloudpickle
+    - azureml-inference-server-http  # <--- Added this to fix the Log Error
